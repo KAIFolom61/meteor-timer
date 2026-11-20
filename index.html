@@ -1,0 +1,330 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>МЕТЕОР — Таймеры</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 30px 15px;
+    background: radial-gradient(ellipse at top, #3b1010, #111 55%, #050505);
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+h1 {
+    margin: 0;
+    color: #ed2525;
+    font-size: 60px;
+    letter-spacing: 10px;
+    text-shadow: 0 0 25px #b50000;
+}
+
+.subtitle {
+    margin-top: 10px;
+    color: #aaa;
+    letter-spacing: 4px;
+    font-size: 12px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.timer {
+    padding: 22px;
+    border: 1px solid #632222;
+    border-top: 3px solid #e32626;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #202020, #101010);
+    box-shadow: 0 10px 30px #0009;
+}
+
+.name {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 18px;
+    background: #090909;
+    color: #fff;
+    border: 1px solid #713030;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #aaa;
+    font-size: 13px;
+}
+
+input[type="time"] {
+    width: 100%;
+    padding: 12px;
+    background: #080808;
+    color: white;
+    border: 1px solid #713030;
+    border-radius: 6px;
+    font-size: 18px;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+button {
+    flex: 1;
+    padding: 12px 8px;
+    border: none;
+    border-radius: 6px;
+    background: #c51e1e;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: 1px;
+}
+
+button:hover {
+    background: #ed2929;
+}
+
+.reset {
+    background: #393939;
+}
+
+.reset:hover {
+    background: #555;
+}
+
+.countdown {
+    margin-top: 25px;
+    text-align: center;
+    color: #ff3333;
+    font-size: 42px;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+}
+
+.expired {
+    color: #888;
+    font-size: 25px;
+}
+
+.info {
+    margin-top: 15px;
+    text-align: center;
+    color: #aaa;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+footer {
+    margin-top: 35px;
+    text-align: center;
+    color: #666;
+    letter-spacing: 3px;
+    font-size: 11px;
+}
+
+@media (max-width: 400px) {
+    h1 {
+        font-size: 40px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <h1>МЕТЕОР</h1>
+    <div class="subtitle">СИСТЕМА ТАЙМЕРОВ · 40 МИНУТ</div>
+</header>
+
+<div class="grid" id="timers"></div>
+
+<footer>METEOR CLAN · TIME CONTROL</footer>
+
+</div>
+
+<script>
+const DURATION = 40 * 60 * 1000;
+const STORAGE_KEY = "meteorTimers";
+
+let saved = [];
+
+try {
+    saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+} catch (e) {
+    saved = [];
+}
+
+const timers = [];
+const container = document.getElementById("timers");
+
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    }[char]));
+}
+
+// Создаём пять таймеров
+for (let i = 0; i < 5; i++) {
+    const old = saved[i] || {};
+
+    const card = document.createElement("div");
+    card.className = "timer";
+
+    card.innerHTML = `
+        <input class="name" type="text" maxlength="30"
+            placeholder="Название позиции"
+            value="${escapeHTML(old.name || "ПОЗИЦИЯ " + (i + 1))}">
+
+        <label>Время начала</label>
+        <input class="time" type="time" step="60"
+            value="${old.time || ""}">
+
+        <div class="buttons">
+            <button class="start">ЗАПУСТИТЬ</button>
+            <button class="reset">СБРОС</button>
+        </div>
+
+        <div class="countdown">40:00</div>
+
+        <div class="info">
+            Укажите время начала<br>
+            Длительность: 40 минут
+        </div>
+    `;
+
+    container.appendChild(card);
+
+    const timer = {
+        name: card.querySelector(".name"),
+        time: card.querySelector(".time"),
+        countdown: card.querySelector(".countdown"),
+        info: card.querySelector(".info"),
+        start: Number(old.start) || null
+    };
+
+    timers.push(timer);
+
+    timer.name.addEventListener("input", saveAll);
+    timer.time.addEventListener("change", saveAll);
+
+    // Запуск таймера
+    card.querySelector(".start").addEventListener("click", () => {
+        if (!timer.time.value) {
+            alert("Сначала укажите время начала!");
+            return;
+        }
+
+        const [hours, minutes] = timer.time.value.split(":").map(Number);
+        const startDate = new Date();
+
+        startDate.setHours(hours, minutes, 0, 0);
+
+        timer.start = startDate.getTime();
+
+        saveAll();
+        updateTimer(timer);
+    });
+
+    // Сброс таймера
+    card.querySelector(".reset").addEventListener("click", () => {
+        timer.start = null;
+        timer.time.value = "";
+
+        timer.countdown.textContent = "40:00";
+        timer.countdown.classList.remove("expired");
+
+        timer.info.innerHTML =
+            "Укажите время начала<br>Длительность: 40 минут";
+
+        saveAll();
+    });
+}
+
+// Сохранение данных
+function saveAll() {
+    const data = timers.map(timer => ({
+        name: timer.name.value,
+        time: timer.time.value,
+        start: timer.start
+    }));
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+// Обновление таймера
+function updateTimer(timer) {
+    if (!timer.start) return;
+
+    const end = timer.start + DURATION;
+    const remaining = Math.ceil((end - Date.now()) / 1000);
+
+    const endTime = new Date(end).toLocaleTimeString("ru-RU", {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    if (remaining <= 0) {
+        timer.countdown.textContent = "ВРЕМЯ ВЫШЛО";
+        timer.countdown.classList.add("expired");
+    } else {
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
+
+        timer.countdown.textContent =
+            String(minutes).padStart(2, "0") + ":" +
+            String(seconds).padStart(2, "0");
+
+        timer.countdown.classList.remove("expired");
+    }
+
+    timer.info.innerHTML =
+        "Начало: " + escapeHTML(timer.time.value) +
+        "<br>Окончание: " + endTime;
+}
+
+// Обновление всех таймеров
+function updateAll() {
+    timers.forEach(updateTimer);
+}
+
+updateAll();
+setInterval(updateAll, 250);
+
+</script>
+</body>
+</html>
