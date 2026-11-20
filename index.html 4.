@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -174,7 +173,6 @@ footer {
 </div>
 
 <script>
-
 const DURATION = 40 * 60 * 1000;
 const STORAGE_KEY = "meteorTimers";
 
@@ -189,31 +187,31 @@ try {
 const timers = [];
 const container = document.getElementById("timers");
 
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    }[char]));
+}
+
 // Создаём пять таймеров
 for (let i = 0; i < 5; i++) {
-
     const old = saved[i] || {};
 
     const card = document.createElement("div");
     card.className = "timer";
 
     card.innerHTML = `
-        <input
-            class="name"
-            type="text"
-            maxlength="30"
+        <input class="name" type="text" maxlength="30"
             placeholder="Название позиции"
-            value="${escapeHTML(old.name || "ПОЗИЦИЯ " + (i + 1))}"
-        >
+            value="${escapeHTML(old.name || "ПОЗИЦИЯ " + (i + 1))}">
 
         <label>Время начала</label>
-
-        <input
-            class="time"
-            type="time"
-            step="60"
-            value="${old.time || ""}"
-        >
+        <input class="time" type="time" step="60"
+            value="${old.time || ""}">
 
         <div class="buttons">
             <button class="start">ЗАПУСТИТЬ</button>
@@ -240,21 +238,17 @@ for (let i = 0; i < 5; i++) {
 
     timers.push(timer);
 
-    // Сохранение названия
     timer.name.addEventListener("input", saveAll);
+    timer.time.addEventListener("change", saveAll);
 
     // Запуск таймера
     card.querySelector(".start").addEventListener("click", () => {
-
         if (!timer.time.value) {
             alert("Сначала укажите время начала!");
             return;
         }
 
-        const [hours, minutes] = timer.time.value
-            .split(":")
-            .map(Number);
-
+        const [hours, minutes] = timer.time.value.split(":").map(Number);
         const startDate = new Date();
 
         startDate.setHours(hours, minutes, 0, 0);
@@ -267,7 +261,6 @@ for (let i = 0; i < 5; i++) {
 
     // Сброс таймера
     card.querySelector(".reset").addEventListener("click", () => {
-
         timer.start = null;
         timer.time.value = "";
 
@@ -281,18 +274,7 @@ for (let i = 0; i < 5; i++) {
     });
 }
 
-// Защита названий от вставки HTML
-function escapeHTML(value) {
-    return String(value).replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-    }[char]));
-}
-
-// Сохранение всех данных
+// Сохранение данных
 function saveAll() {
     const data = timers.map(timer => ({
         name: timer.name.value,
@@ -303,9 +285,8 @@ function saveAll() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-// Обновление одного таймера
+// Обновление таймера
 function updateTimer(timer) {
-
     if (!timer.start) return;
 
     const end = timer.start + DURATION;
@@ -317,12 +298,9 @@ function updateTimer(timer) {
     });
 
     if (remaining <= 0) {
-
         timer.countdown.textContent = "ВРЕМЯ ВЫШЛО";
         timer.countdown.classList.add("expired");
-
     } else {
-
         const minutes = Math.floor(remaining / 60);
         const seconds = remaining % 60;
 
@@ -344,10 +322,8 @@ function updateAll() {
 }
 
 updateAll();
-
 setInterval(updateAll, 250);
 
 </script>
-
 </body>
 </html>
