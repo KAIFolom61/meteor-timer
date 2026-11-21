@@ -4,149 +4,327 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>МЕТЕОР — Общие таймеры</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>МЕТЕОР — Таймеры</title>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#090909;color:#fff;font-family:Arial,sans-serif;padding:25px}
-h1{text-align:center;color:#e32626;letter-spacing:5px}
-.subtitle{text-align:center;color:#aaa;margin-bottom:30px}
-#status{text-align:center;color:#aaa;margin:15px}
-.grid{max-width:1000px;margin:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
-.card{background:#171717;border:1px solid #8d1717;border-radius:12px;padding:20px;box-shadow:0 0 15px #300}
-input{width:100%;padding:12px;margin:7px 0;background:#090909;color:white;border:1px solid #555;border-radius:6px;font-size:16px}
-h2{color:#ff3939;margin-top:0}
-.time{font-size:30px;text-align:center;font-weight:bold;margin:18px 0;color:#fff}
-.end{text-align:center;color:#aaa;margin:12px 0}
-button{padding:11px 15px;margin:5px 3px;border:0;border-radius:6px;background:#b51e1e;color:white;font-weight:bold;cursor:pointer}
-button:hover{background:#ed3030}
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 30px 15px;
+    background: radial-gradient(ellipse at top, #3b1010, #111 55%, #050505);
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+h1 {
+    margin: 0;
+    color: #ed2525;
+    font-size: 60px;
+    letter-spacing: 10px;
+    text-shadow: 0 0 25px #b50000;
+}
+
+.subtitle {
+    margin-top: 10px;
+    color: #aaa;
+    letter-spacing: 4px;
+    font-size: 12px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.timer {
+    padding: 22px;
+    border: 1px solid #632222;
+    border-top: 3px solid #e32626;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #202020, #101010);
+    box-shadow: 0 10px 30px #0009;
+}
+
+.name {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 18px;
+    background: #090909;
+    color: #fff;
+    border: 1px solid #713030;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #aaa;
+    font-size: 13px;
+}
+
+input[type="time"] {
+    width: 100%;
+    padding: 12px;
+    background: #080808;
+    color: white;
+    border: 1px solid #713030;
+    border-radius: 6px;
+    font-size: 18px;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+button {
+    flex: 1;
+    padding: 12px 8px;
+    border: none;
+    border-radius: 6px;
+    background: #c51e1e;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: 1px;
+}
+
+button:hover {
+    background: #ed2929;
+}
+
+.reset {
+    background: #393939;
+}
+
+.reset:hover {
+    background: #555;
+}
+
+.countdown {
+    margin-top: 25px;
+    text-align: center;
+    color: #ff3333;
+    font-size: 42px;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+}
+
+.expired {
+    color: #888;
+    font-size: 25px;
+}
+
+.info {
+    margin-top: 15px;
+    text-align: center;
+    color: #aaa;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+footer {
+    margin-top: 35px;
+    text-align: center;
+    color: #666;
+    letter-spacing: 3px;
+    font-size: 11px;
+}
+
+@media (max-width: 400px) {
+    h1 {
+        font-size: 40px;
+    }
+}
 </style>
 </head>
+
 <body>
-<h1>МЕТЕОР</h1>
-<div class="subtitle">ОБЩАЯ СИСТЕМА ТАЙМЕРОВ</div>
-<div id="status">Подключение...</div>
+
+<div class="container">
+
+<header>
+    <h1>МЕТЕОР</h1>
+    <div class="subtitle">СИСТЕМА ТАЙМЕРОВ · 40 МИНУТ</div>
+</header>
+
 <div class="grid" id="timers"></div>
 
+<footer>METEOR CLAN · TIME CONTROL</footer>
+
+</div>
+
 <script>
-const PROJECT_URL = sb_publishable_3W9W2_tVMT3iJ_8-J1lsmg_aLu9W42O;
-const PUBLISHABLE_KEY = sb_secret_9hpg7jegZVELIzpRofQ44A_AlxDyH_P;
-const db = window.supabase.createClient(sb_publishable_3W9W2_tVMT3iJ_8-J1lsmg_aLu9W42O, sb_secret_9hpg7jegZVELIzpRofQ44A_AlxDyH_P);
 const DURATION = 40 * 60 * 1000;
+const STORAGE_KEY = "meteorTimers";
 
-let positions = [];
-let busy = false;
-let channel;
+let saved = [];
 
-function render(){
-  const root = document.getElementById("timers");
-  root.innerHTML = "";
-  positions.forEach((p,i)=>{
+try {
+    saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+} catch (e) {
+    saved = [];
+}
+
+const timers = [];
+const container = document.getElementById("timers");
+
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    }[char]));
+}
+
+// Создаём пять таймеров
+for (let i = 0; i < 5; i++) {
+    const old = saved[i] || {};
+
     const card = document.createElement("div");
-    card.className = "card";
+    card.className = "timer";
+
     card.innerHTML = `
-      <h2>ПОЗИЦИЯ ${i+1}</h2>
-      <input class="name" aria-label="Название позиции" placeholder="Название позиции">
-      <input class="timeInput" type="time" aria-label="Время начала">
-      <div class="time" id="left${i}">40:00</div>
-      <div class="end" id="end${i}">Окончание: —</div>
-      <button class="start">ЗАПУСТИТЬ</button>
-      <button class="reset">СБРОСИТЬ</button>`;
-    const name = card.querySelector(".name");
-    const timeInput = card.querySelector(".timeInput");
-    name.value = p.name || `ПОЗИЦИЯ ${i+1}`;
-    timeInput.value = p.time || "";
-    name.addEventListener("change",async()=>{
-      positions[i].name = name.value.trim() || `ПОЗИЦИЯ ${i+1}`;
-      await save();
-    });
-    timeInput.addEventListener("change",async()=>{
-      positions[i].time = timeInput.value;
-      await save();
-    });
-    card.querySelector(".start").onclick=async()=>{
-      if(busy)return;
-      const chosen = positions[i].time;
-      if(chosen){
-        const [h,m] = chosen.split(":").map(Number);
-        const now = new Date();
-        const start = new Date(now);
-        start.setHours(h,m,0,0);
-        if(start.getTime() > now.getTime()) start.setDate(start.getDate()-1);
-        positions[i].start = start.getTime();
-      }else{
-        positions[i].start = Date.now();
-        positions[i].time = new Date().toTimeString().slice(0,5);
-      }
-      await save();
+        <input class="name" type="text" maxlength="30"
+            placeholder="Название позиции"
+            value="${escapeHTML(old.name || "ПОЗИЦИЯ " + (i + 1))}">
+
+        <label>Время начала</label>
+        <input class="time" type="time" step="60"
+            value="${old.time || ""}">
+
+        <div class="buttons">
+            <button class="start">ЗАПУСТИТЬ</button>
+            <button class="reset">СБРОС</button>
+        </div>
+
+        <div class="countdown">40:00</div>
+
+        <div class="info">
+            Укажите время начала<br>
+            Длительность: 40 минут
+        </div>
+    `;
+
+    container.appendChild(card);
+
+    const timer = {
+        name: card.querySelector(".name"),
+        time: card.querySelector(".time"),
+        countdown: card.querySelector(".countdown"),
+        info: card.querySelector(".info"),
+        start: Number(old.start) || null
     };
-    card.querySelector(".reset").onclick=async()=>{
-      positions[i].start = null;
-      positions[i].time = "";
-      timeInput.value = "";
-      await save();
-    };
-    root.appendChild(card);
-  });
-  updateAll();
+
+    timers.push(timer);
+
+    timer.name.addEventListener("input", saveAll);
+    timer.time.addEventListener("change", saveAll);
+
+    // Запуск таймера
+    card.querySelector(".start").addEventListener("click", () => {
+        if (!timer.time.value) {
+            alert("Сначала укажите время начала!");
+            return;
+        }
+
+        const [hours, minutes] = timer.time.value.split(":").map(Number);
+        const startDate = new Date();
+
+        startDate.setHours(hours, minutes, 0, 0);
+
+        timer.start = startDate.getTime();
+
+        saveAll();
+        updateTimer(timer);
+    });
+
+    // Сброс таймера
+    card.querySelector(".reset").addEventListener("click", () => {
+        timer.start = null;
+        timer.time.value = "";
+
+        timer.countdown.textContent = "40:00";
+        timer.countdown.classList.remove("expired");
+
+        timer.info.innerHTML =
+            "Укажите время начала<br>Длительность: 40 минут";
+
+        saveAll();
+    });
 }
 
-async function save(){
-  if(busy)return;
-  busy=true;
-  document.getElementById("status").textContent="Сохранение...";
-  const {error}=await db.from("meteor_timers").update({
-    positions:positions,
-    updated_at:new Date().toISOString()
-  }).eq("id",1);
-  busy=false;
-  document.getElementById("status").textContent=error
-    ?"Ошибка сохранения: "+error.message
-    :"Данные сохранены для всех посетителей";
+// Сохранение данных
+function saveAll() {
+    const data = timers.map(timer => ({
+        name: timer.name.value,
+        time: timer.time.value,
+        start: timer.start
+    }));
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-async function load(){
-  const {data,error}=await db.from("meteor_timers")
-    .select("positions").eq("id",1).single();
-  if(error){
-    document.getElementById("status").textContent="Ошибка загрузки: "+error.message;
-    return;
-  }
-  positions=data.positions;
-  render();
-  document.getElementById("status").textContent="Подключено к общей базе";
-  channel=db.channel("meteor-timers")
-    .on("postgres_changes",{
-      event:"UPDATE",schema:"public",table:"meteor_timers",filter:"id=eq.1"
-    },payload=>{
-      if(!busy){
-        positions=payload.new.positions;
-        render();
-      }
-    }).subscribe();
-}
+// Обновление таймера
+function updateTimer(timer) {
+    if (!timer.start) return;
 
-function updateAll(){
-  positions.forEach((p,i)=>{
-    const left=document.getElementById("left"+i);
-    const end=document.getElementById("end"+i);
-    if(!left || !end)return;
-    if(!p.start){
-      left.textContent="40:00";
-      end.textContent="Окончание: —";
-      return;
+    const end = timer.start + DURATION;
+    const remaining = Math.ceil((end - Date.now()) / 1000);
+
+    const endTime = new Date(end).toLocaleTimeString("ru-RU", {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    if (remaining <= 0) {
+        timer.countdown.textContent = "ВРЕМЯ ВЫШЛО";
+        timer.countdown.classList.add("expired");
+    } else {
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
+
+        timer.countdown.textContent =
+            String(minutes).padStart(2, "0") + ":" +
+            String(seconds).padStart(2, "0");
+
+        timer.countdown.classList.remove("expired");
     }
-    const finish=p.start+DURATION;
-    const remaining=Math.max(0,finish-Date.now());
-    const mins=Math.floor(remaining/60000);
-    const secs=Math.floor((remaining%60000)/1000);
-    left.textContent=String(mins).padStart(2,"0")+":"+String(secs).padStart(2,"0");
-    end.textContent="Окончание: "+new Date(finish).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
-    if(remaining===0)left.textContent="ВРЕМЯ ВЫШЛО";
-  });
+
+    timer.info.innerHTML =
+        "Начало: " + escapeHTML(timer.time.value) +
+        "<br>Окончание: " + endTime;
 }
-setInterval(updateAll,1000);
-load();
+
+// Обновление всех таймеров
+function updateAll() {
+    timers.forEach(updateTimer);
+}
+
+updateAll();
+setInterval(updateAll, 250);
+
 </script>
 </body>
 </html>
