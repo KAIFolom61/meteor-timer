@@ -1,330 +1,301 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>МЕТЕОР — Таймеры</title>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    min-height: 100vh;
-    padding: 30px 15px;
-    background: radial-gradient(ellipse at top, #3b1010, #111 55%, #050505);
-    color: white;
-    font-family: Arial, sans-serif;
-}
-
-.container {
-    max-width: 1100px;
-    margin: auto;
-}
-
-header {
-    text-align: center;
-    margin-bottom: 35px;
-}
-
-h1 {
-    margin: 0;
-    color: #ed2525;
-    font-size: 60px;
-    letter-spacing: 10px;
-    text-shadow: 0 0 25px #b50000;
-}
-
-.subtitle {
-    margin-top: 10px;
-    color: #aaa;
-    letter-spacing: 4px;
-    font-size: 12px;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-}
-
-.timer {
-    padding: 22px;
-    border: 1px solid #632222;
-    border-top: 3px solid #e32626;
-    border-radius: 12px;
-    background: linear-gradient(145deg, #202020, #101010);
-    box-shadow: 0 10px 30px #0009;
-}
-
-.name {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 18px;
-    background: #090909;
-    color: #fff;
-    border: 1px solid #713030;
-    border-radius: 6px;
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
-}
-
-label {
-    display: block;
-    margin-bottom: 8px;
-    color: #aaa;
-    font-size: 13px;
-}
-
-input[type="time"] {
-    width: 100%;
-    padding: 12px;
-    background: #080808;
-    color: white;
-    border: 1px solid #713030;
-    border-radius: 6px;
-    font-size: 18px;
-}
-
-.buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 12px;
-}
-
-button {
-    flex: 1;
-    padding: 12px 8px;
-    border: none;
-    border-radius: 6px;
-    background: #c51e1e;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    letter-spacing: 1px;
-}
-
-button:hover {
-    background: #ed2929;
-}
-
-.reset {
-    background: #393939;
-}
-
-.reset:hover {
-    background: #555;
-}
-
-.countdown {
-    margin-top: 25px;
-    text-align: center;
-    color: #ff3333;
-    font-size: 42px;
-    font-weight: bold;
-    font-variant-numeric: tabular-nums;
-}
-
-.expired {
-    color: #888;
-    font-size: 25px;
-}
-
-.info {
-    margin-top: 15px;
-    text-align: center;
-    color: #aaa;
-    font-size: 13px;
-    line-height: 1.8;
-}
-
-footer {
-    margin-top: 35px;
-    text-align: center;
-    color: #666;
-    letter-spacing: 3px;
-    font-size: 11px;
-}
-
-@media (max-width: 400px) {
-    h1 {
-        font-size: 40px;
-    }
+:root{--r:#e32636;--bg:#090909;--p:#171717;--line:#383838}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#281014,#090909 60%);color:#f5f5f5;font:16px Arial,sans-serif;min-height:100vh}
+.wrap{max-width:1100px;margin:auto;padding:28px 18px}
+header{display:flex;justify-content:space-between;align-items:center;gap:15px;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:22px}
+h1{font-size:38px;letter-spacing:3px;margin:0}
+h1 b{color:var(--r)}
+.sub{font-size:11px;color:#aaa;letter-spacing:2px;margin-top:6px}
+.status{font-size:12px;color:#aaa}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#888;margin-right:7px}
+.ok{background:#39c46a}
+.bad{background:var(--r)}
+button{background:var(--r);color:white;border:0;border-radius:7px;padding:11px 14px;font-weight:bold;cursor:pointer}
+button.secondary{background:#303030;border:1px solid #555}
+button.danger{background:#42191e;border:1px solid #742832}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px}
+.card{background:linear-gradient(145deg,#1d1d1d,#111);border:1px solid var(--line);border-top:3px solid var(--r);border-radius:11px;padding:16px}
+.top{display:flex;align-items:center;gap:8px}
+.name{font-weight:bold;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.time{font-size:43px;font-weight:bold;font-variant-numeric:tabular-nums;margin:15px 0 7px}
+.finished{color:var(--r)}
+.meta{font-size:12px;color:#aaa;min-height:18px;margin-bottom:13px}
+.edit{display:grid;grid-template-columns:1fr 85px;gap:8px;margin:10px 0 14px}
+label{display:block;color:#aaa;font-size:11px;margin-bottom:5px}
+input{width:100%;background:#080808;border:1px solid #484848;color:white;padding:10px;border-radius:6px}
+.actions{display:flex;flex-wrap:wrap;gap:6px}
+.actions button{font-size:11px;padding:9px}
+.empty{grid-column:1/-1;text-align:center;color:#aaa;padding:35px;border:1px dashed #555;border-radius:10px}
+details{margin-top:24px;background:var(--p);border:1px solid #444;border-radius:9px;padding:15px}
+summary{cursor:pointer;font-weight:bold}
+details p,footer{font-size:12px;line-height:1.5;color:#aaa}
+.setup{display:grid;gap:10px}
+dialog{background:#181818;color:white;border:1px solid #555;border-radius:10px;max-width:400px;width:calc(100% - 30px)}
+dialog::backdrop{background:#000b}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+@media(max-width:560px){
+header{align-items:flex-start;flex-direction:column}
+h1{font-size:32px}
 }
 </style>
 </head>
-
 <body>
-
-<div class="container">
-
+<main class="wrap">
 <header>
-    <h1>МЕТЕОР</h1>
-    <div class="subtitle">СИСТЕМА ТАЙМЕРОВ · 40 МИНУТ</div>
+<div>
+<h1>МЕТЕОР<b>.</b></h1>
+<div class="sub">СИСТЕМА УПРАВЛЕНИЯ ТАЙМЕРАМИ</div>
+</div>
+<div class="status"><i class="dot" id="dot"></i><span id="status">Не подключено</span></div>
 </header>
 
-<div class="grid" id="timers"></div>
-
-<footer>METEOR CLAN · TIME CONTROL</footer>
-
+<div class="toolbar">
+<button id="add">＋ ДОБАВИТЬ ПОЗИЦИЮ</button>
+<button class="secondary" id="refresh">↻ ОБНОВИТЬ</button>
 </div>
 
+<section class="grid" id="positions">
+<div class="empty">Подключите общее хранилище в настройках ниже.</div>
+</section>
+
+<footer>Позиции и таймеры общие для всех посетителей сайта. Изменения синхронизируются автоматически.</footer>
+
+<details id="setup">
+<summary>Настройки подключения Supabase</summary>
+<p>Введите Project URL и anon / publishable key вашего проекта Supabase.</p>
+<div class="setup">
+<div>
+<label>PROJECT URL</label>
+<input id="url" placeholder="https://xxxxxxxx.supabase.co">
+</div>
+<div>
+<label>ANON / PUBLISHABLE KEY</label>
+<input id="key" placeholder="Публичный ключ Supabase">
+</div>
+<button id="connect">СОХРАНИТЬ И ПОДКЛЮЧИТЬ</button>
+</div>
+</details>
+</main>
+
+<dialog id="dlg">
+<form id="form">
+<h3>Новая позиция</h3>
+<label>Название</label>
+<input id="newName" maxlength="60" required placeholder="Например, Северный склад">
+<label style="margin-top:12px">Продолжительность (минуты)</label>
+<input id="newDuration" type="number" min="1" max="100000" step="1" value="40" required>
+<div class="modal-actions">
+<button type="button" class="secondary" id="cancel">ОТМЕНА</button>
+<button>СОЗДАТЬ</button>
+</div>
+</form>
+</dialog>
+
 <script>
-const DURATION = 40 * 60 * 1000;
-const STORAGE_KEY = "meteorTimers";
+(()=>{
+let db=null,rows=[],channel=null;
+const $=x=>document.getElementById(x);
 
-let saved = [];
+const status=(s,c='')=>{
+$('status').textContent=s;
+$('dot').className='dot '+c;
+};
 
-try {
-    saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-} catch (e) {
-    saved = [];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
+'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[c]));
+
+const fmt=ms=>{
+let n=Math.max(0,Math.ceil(ms/1000)),
+h=Math.floor(n/3600),
+m=Math.floor(n%3600/60),
+s=n%60;
+return h
+?`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+};
+
+function render(){
+let host=$('positions');
+if(!rows.length){
+host.innerHTML='<div class="empty">Позиций пока нет. Нажмите «Добавить позицию».</div>';
+return;
 }
 
-const timers = [];
-const container = document.getElementById("timers");
+host.innerHTML=rows.map(r=>{
+let run=!!r.started_at,
+end=run?new Date(r.started_at).getTime()+r.duration_minutes*60000:0,
+left=run?end-Date.now():0,
+done=run&&left<=0;
 
-function escapeHTML(value) {
-    return String(value).replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-    }[char]));
+return `
+<article class="card" data-id="${r.id}">
+<div class="top">
+<div class="name">${esc(r.name)}</div>
+<button class="secondary" data-a="rename">✎</button>
+</div>
+<div class="time ${done?'finished':''}" data-t="${r.id}">${run?fmt(left):'--:--'}</div>
+<div class="meta">${done?'ВРЕМЯ ИСТЕКЛО':run?'Завершение: '+new Date(end).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'Таймер не запущен'} · ${r.duration_minutes} мин.</div>
+<div class="edit">
+<div>
+<label>ДЛИТЕЛЬНОСТЬ, МИНУТЫ</label>
+<input data-duration type="number" min="1" max="100000" step="1" value="${r.duration_minutes}">
+</div>
+<button class="secondary" data-a="save">СОХР.</button>
+</div>
+<div class="actions">
+<button data-a="start">${run?'ПЕРЕЗАПУСТИТЬ':'ЗАПУСТИТЬ'}</button>
+<button class="secondary" data-a="stop">СБРОСИТЬ</button>
+<button class="danger" data-a="delete">УДАЛИТЬ</button>
+</div>
+</article>`;
+}).join('');
 }
 
-// Создаём пять таймеров
-for (let i = 0; i < 5; i++) {
-    const old = saved[i] || {};
-
-    const card = document.createElement("div");
-    card.className = "timer";
-
-    card.innerHTML = `
-        <input class="name" type="text" maxlength="30"
-            placeholder="Название позиции"
-            value="${escapeHTML(old.name || "ПОЗИЦИЯ " + (i + 1))}">
-
-        <label>Время начала</label>
-        <input class="time" type="time" step="60"
-            value="${old.time || ""}">
-
-        <div class="buttons">
-            <button class="start">ЗАПУСТИТЬ</button>
-            <button class="reset">СБРОС</button>
-        </div>
-
-        <div class="countdown">40:00</div>
-
-        <div class="info">
-            Укажите время начала<br>
-            Длительность: 40 минут
-        </div>
-    `;
-
-    container.appendChild(card);
-
-    const timer = {
-        name: card.querySelector(".name"),
-        time: card.querySelector(".time"),
-        countdown: card.querySelector(".countdown"),
-        info: card.querySelector(".info"),
-        start: Number(old.start) || null
-    };
-
-    timers.push(timer);
-
-    timer.name.addEventListener("input", saveAll);
-    timer.time.addEventListener("change", saveAll);
-
-    // Запуск таймера
-    card.querySelector(".start").addEventListener("click", () => {
-        if (!timer.time.value) {
-            alert("Сначала укажите время начала!");
-            return;
-        }
-
-        const [hours, minutes] = timer.time.value.split(":").map(Number);
-        const startDate = new Date();
-
-        startDate.setHours(hours, minutes, 0, 0);
-
-        timer.start = startDate.getTime();
-
-        saveAll();
-        updateTimer(timer);
-    });
-
-    // Сброс таймера
-    card.querySelector(".reset").addEventListener("click", () => {
-        timer.start = null;
-        timer.time.value = "";
-
-        timer.countdown.textContent = "40:00";
-        timer.countdown.classList.remove("expired");
-
-        timer.info.innerHTML =
-            "Укажите время начала<br>Длительность: 40 минут";
-
-        saveAll();
-    });
+async function load(){
+if(!db)return;
+let {data,error}=await db.from('meteor_positions').select('*').order('created_at');
+if(error){
+status('Ошибка загрузки','bad');
+alert(error.message);
+return;
+}
+rows=data||[];
+render();
+status('Подключено','ok');
 }
 
-// Сохранение данных
-function saveAll() {
-    const data = timers.map(timer => ({
-        name: timer.name.value,
-        time: timer.time.value,
-        start: timer.start
-    }));
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+async function update(id,patch){
+let {error}=await db.from('meteor_positions').update(patch).eq('id',id);
+if(error)alert('Ошибка сохранения: '+error.message);
 }
 
-// Обновление таймера
-function updateTimer(timer) {
-    if (!timer.start) return;
+$('connect').onclick=async()=>{
+let url=$('url').value.trim(),
+key=$('key').value.trim();
 
-    const end = timer.start + DURATION;
-    const remaining = Math.ceil((end - Date.now()) / 1000);
-
-    const endTime = new Date(end).toLocaleTimeString("ru-RU", {
-        hour: "2-digit",
-        minute: "2-digit"
-    });
-
-    if (remaining <= 0) {
-        timer.countdown.textContent = "ВРЕМЯ ВЫШЛО";
-        timer.countdown.classList.add("expired");
-    } else {
-        const minutes = Math.floor(remaining / 60);
-        const seconds = remaining % 60;
-
-        timer.countdown.textContent =
-            String(minutes).padStart(2, "0") + ":" +
-            String(seconds).padStart(2, "0");
-
-        timer.countdown.classList.remove("expired");
-    }
-
-    timer.info.innerHTML =
-        "Начало: " + escapeHTML(timer.time.value) +
-        "<br>Окончание: " + endTime;
+if(!/^https:\/\/[a-z0-9.-]+$/i.test(url)||!key){
+alert('Проверьте Project URL и публичный ключ.');
+return;
 }
 
-// Обновление всех таймеров
-function updateAll() {
-    timers.forEach(updateTimer);
+try{
+db=window.supabase.createClient(url,key);
+let {error}=await db.from('meteor_positions').select('id').limit(1);
+if(error)throw error;
+
+if(channel)await db.removeChannel(channel);
+
+channel=db.channel('meteor-live')
+.on('postgres_changes',{
+event:'*',
+schema:'public',
+table:'meteor_positions'
+},load)
+.subscribe();
+
+await load();
+$('setup').open=false;
+}catch(e){
+db=null;
+status('Ошибка подключения','bad');
+alert('Не удалось подключиться: '+e.message);
+}
+};
+
+$('add').onclick=()=>{
+if(!db)return alert('Сначала подключите Supabase в настройках внизу.');
+$('newName').value='';
+$('newDuration').value='40';
+$('dlg').showModal();
+};
+
+$('cancel').onclick=()=>$('dlg').close();
+
+$('form').onsubmit=async e=>{
+e.preventDefault();
+let name=$('newName').value.trim(),
+duration=Number($('newDuration').value);
+
+if(!name||!Number.isInteger(duration)||duration<1)return;
+
+let {error}=await db.from('meteor_positions').insert({
+name,
+duration_minutes:duration
+});
+
+if(error)alert(error.message);
+else{
+$('dlg').close();
+load();
+}
+};
+
+$('refresh').onclick=load;
+
+$('positions').onclick=async e=>{
+let b=e.target.closest('button[data-a]');
+if(!b)return;
+
+let card=b.closest('.card'),
+id=card.dataset.id,
+r=rows.find(x=>String(x.id)===id),
+a=b.dataset.a;
+
+if(!r)return;
+
+if(a==='start')await update(id,{started_at:new Date().toISOString()});
+if(a==='stop')await update(id,{started_at:null});
+
+if(a==='rename'){
+let n=prompt('Новое название:',r.name);
+if(n&&n.trim())await update(id,{name:n.trim()});
 }
 
-updateAll();
-setInterval(updateAll, 250);
+if(a==='save'){
+let n=Number(card.querySelector('[data-duration]').value);
+if(!Number.isInteger(n)||n<1||n>100000){
+alert('Введите целое число минут от 1 до 100000.');
+return;
+}
+await update(id,{duration_minutes:n});
+}
 
+if(a==='delete'&&confirm('Удалить позицию «'+r.name+'»?')){
+let {error}=await db.from('meteor_positions').delete().eq('id',id);
+if(error)alert(error.message);
+else load();
+}
+};
+
+setInterval(()=>{
+document.querySelectorAll('[data-t]').forEach(el=>{
+let r=rows.find(x=>String(x.id)===el.dataset.t);
+if(!r||!r.started_at)return;
+
+let end=new Date(r.started_at).getTime()+r.duration_minutes*60000;
+el.textContent=fmt(end-Date.now());
+el.classList.toggle('finished',end<=Date.now());
+
+let meta=el.nextElementSibling;
+if(meta)meta.textContent=
+(end<=Date.now()
+?'ВРЕМЯ ИСТЕКЛО'
+:'Завершение: '+new Date(end).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}))
++' · '+r.duration_minutes+' мин.';
+});
+},250);
+
+})();
 </script>
 </body>
 </html>
