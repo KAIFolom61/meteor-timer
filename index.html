@@ -44,7 +44,13 @@ h2{margin-top:0}
  <div><h1>МЕТЕОР<b>.</b></h1><div class="sub">СИСТЕМА УПРАВЛЕНИЯ ТАЙМЕРАМИ</div></div>
  <div><div class="status" id="status">Не авторизован</div><button class="secondary hidden" id="logout">ВЫЙТИ</button></div>
 </header>
-
+<section id="serverGate" class="panel auth">
+ <h2>ДОСТУП К СЕРВЕРУ</h2>
+ <label>Серверный пароль</label>
+ <input id="serverPasswordInput" type="password" placeholder="Введите серверный пароль">
+ <button id="serverPasswordBtn">ПРОДОЛЖИТЬ</button>
+ <p id="serverPasswordMessage" class="small"></p>
+</section>
 <section id="login" class="panel auth">
  <h2>ВХОД В СИСТЕМУ</h2>
  <label>Электронная почта</label>
@@ -64,6 +70,15 @@ h2{margin-top:0}
 
  <section id="admin" class="panel hidden">
   <h2>ПАНЕЛЬ АДМИНИСТРАТОРА</h2>
+  <h3>ЗАЩИТА СЕРВЕРА</h3>
+<label>Новый серверный пароль</label>
+<input id="serverPasswordNew" type="password" placeholder="Не менее 8 символов">
+
+<label>Повторите новый пароль</label>
+<input id="serverPasswordConfirm" type="password" placeholder="Повторите пароль">
+
+<button id="saveServerPassword">ИЗМЕНИТЬ СЕРВЕРНЫЙ ПАРОЛЬ</button>
+<p class="small">После изменения новый пароль понадобится всем посетителям сайта.</p>
   <h3>Создать пользователя</h3>
   <label>Email нового пользователя</label>
   <input id="newEmail" type="email" placeholder="user@example.com">
@@ -85,7 +100,11 @@ const ADMIN_FUNCTION=PROJECT_URL+"/functions/v1/dynamic-task";
 const db=window.supabase.createClient(PROJECT_URL,PUBLISHABLE_KEY);
 const $=id=>document.getElementById(id);
 let rows=[],channel=null,profile=null,session=null;
+let serverUnlocked = false;
 
+$("login").classList.add("hidden");
+$("app").classList.add("hidden");
+$("serverGate").classList.remove("hidden");
 function status(s){$("status").textContent=s}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function fmt(ms){
@@ -117,6 +136,53 @@ async function adminCall(action,extra={}){
  if(!response.ok)throw new Error(result.error||"Ошибка функции");
  return result;
 }
+async function verifyServerPassword(){
+ const password=$("serverPasswordInput").value;
+
+ if(!password){
+  $("serverPasswordMessage").textContent="Введите серверный пароль.";
+  return;
+ }
+
+ $("serverPasswordMessage").textContent="Проверка...";
+
+ try{
+  const response=await fetch(ADMIN_FUNCTION,{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json",
+    "apikey":PUBLISHABLE_KEY
+   },
+   body:JSON.stringify({
+    action:"verify_server_password",
+    password
+   })
+  });
+
+  const result=await response.json();
+
+  if(!response.ok)throw new Error(result.error||"Неверный пароль.");
+
+  serverUnlocked=true;
+  $("serverGate").classList.add("hidden");
+  $("login").classList.remove("hidden");
+  $("serverPasswordInput").value="";
+  $("serverPasswordMessage").textContent="";
+
+  const {data}=await db.auth.getSession();
+  if(data.session){
+   try{await enter(data.session)}
+   catch(e){await db.auth.signOut();alert(e.message)}
+  }
+ }catch(e){
+  $("serverPasswordMessage").textContent=e.message;
+ }
+}
+
+$("serverPasswordBtn").onclick=verifyServerPassword;
+$("serverPasswordInput").addEventListener("keydown",e=>{
+ if(e.key==="Enter")verifyServerPassword();
+});
 async function load(){
  const {data,error}=await db.from("meteor_positions").select("*").order("created_at");
  if(error){alert("Ошибка загрузки: "+error.message);return}
@@ -214,6 +280,27 @@ $("positions").onclick=async e=>{
   if(error)alert(error.message);else await load();
  }
 };
+ $("saveServerPassword").onclick=async()=>{
+ try{
+  const password=$("serverPasswordNew").value;
+  const confirmPassword=$("serverPasswordConfirm").value;
+
+  if(password.length<8)
+   throw new Error("Пароль должен содержать минимум 8 символов.");
+
+  if(password!==confirmPassword)
+   throw new Error("Пароли не совпадают.");
+
+  await adminCall("set_server_password",{password});
+
+  $("serverPasswordNew").value="";
+  $("serverPasswordConfirm").value="";
+
+  alert("Серверный пароль успешно изменён!");
+ }catch(e){
+  alert(e.message);
+ }
+};
 $("createUser").onclick=async()=>{
  try{
   const email=$("newEmail").value.trim(),password=$("newPassword").value;
@@ -239,9 +326,6 @@ setInterval(()=>{
   if(meta)meta.textContent=(end<=Date.now()?"ВРЕМЯ ИСТЕКЛО":"Начало: "+localTime(r.started_at)+" · Конец: "+localTime(new Date(end).toISOString()))+" · "+r.duration_minutes+" мин.";
  });
 },500);
-db.auth.getSession().then(async({data})=>{
- if(data.session){try{await enter(data.session)}catch(e){alert(e.message)}}
-});
 })();
 </script>
 </body>
