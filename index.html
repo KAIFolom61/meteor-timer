@@ -8,30 +8,51 @@
 <style>
 :root{--r:#e32636;--bg:#090909;--p:#171717;--line:#383838}
 *{box-sizing:border-box}
-body{margin:0;background:radial-gradient(ellipse at top,#281014,#090909 60%);color:#f5f5f5;font:16px Arial,sans-serif;min-height:100vh}
+body{
+  margin:0;
+  background:
+    radial-gradient(ellipse at 14% 10%,rgba(227,38,54,.12),transparent 30%),
+    radial-gradient(ellipse at 88% 20%,rgba(255,255,255,.10),transparent 27%),
+    radial-gradient(ellipse at 72% 92%,rgba(170,20,35,.08),transparent 32%),
+    linear-gradient(135deg,#030303 0%,#101012 38%,#191316 62%,#050505 100%);
+  background-attachment:fixed;
+  color:#f5f5f5;font:16px Arial,sans-serif;min-height:100vh
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    linear-gradient(115deg,transparent 0 38%,rgba(255,255,255,.045) 48%,transparent 58%),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.014) 0 1px,transparent 1px 8px);
+  opacity:.55;
+}
+.wrap{position:relative;z-index:1}
 .wrap{max-width:1100px;margin:auto;padding:28px 18px}
-header{display:flex;justify-content:space-between;align-items:center;gap:15px;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:22px}
-h1{font-size:38px;letter-spacing:3px;margin:0}
-h1 b{color:var(--r)}
-.sub{font-size:11px;color:#aaa;letter-spacing:2px;margin-top:6px}
+header{position:relative;display:flex;justify-content:center;align-items:center;gap:15px;border-bottom:1px solid var(--line);padding:12px 0 22px;margin-bottom:22px;min-height:112px}
+header>div:first-child{text-align:center}
+h1{font-size:48px;letter-spacing:6px;margin:0;color:#fff;font-weight:900;text-shadow:0 0 2px #fff,0 0 14px rgba(255,255,255,.28),0 3px 0 #555}
+h1 b{color:#ed2638;text-shadow:0 0 14px rgba(237,38,56,.45)}
+.sub{font-size:11px;color:#c9c9c9;letter-spacing:3px;margin-top:8px}
+header .status{position:absolute;right:0;top:12px}
 .status{font-size:12px;color:#aaa}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#888;margin-right:7px}
-.ok{background:#39c46a}
-.bad{background:var(--r)}
+.ok{background:#39c46a}.bad{background:var(--r)}
 button{background:var(--r);color:white;border:0;border-radius:7px;padding:11px 14px;font-weight:bold;cursor:pointer}
 button.secondary{background:#303030;border:1px solid #555}
 button.danger{background:#42191e;border:1px solid #742832}
 .toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px}
-.card{background:linear-gradient(145deg,#1d1d1d,#111);border:1px solid var(--line);border-top:3px solid var(--r);border-radius:11px;padding:16px}
+.card{background:linear-gradient(145deg,rgba(48,48,51,.96),rgba(13,13,14,.98) 58%,rgba(48,10,16,.94));border:1px solid #484044;border-top:3px solid var(--r);border-radius:11px;padding:16px;min-width:0}
 .top{display:flex;align-items:center;gap:8px}
 .name{font-weight:bold;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .time{font-size:43px;font-weight:bold;font-variant-numeric:tabular-nums;margin:15px 0 7px}
 .finished{color:var(--r)}
 .meta{font-size:12px;color:#aaa;min-height:18px;margin-bottom:13px}
 .edit{display:grid;grid-template-columns:1fr 85px;gap:8px;margin:10px 0 14px}
+.time-edit{margin:10px 0}
 label{display:block;color:#aaa;font-size:11px;margin-bottom:5px}
-input{width:100%;background:#080808;border:1px solid #484848;color:white;padding:10px;border-radius:6px}
+input{width:100%;background:#080808;border:1px solid #484848;color:white;padding:10px;border-radius:6px;min-width:0}
+input[type=time]{color-scheme:dark}
 .actions{display:flex;flex-wrap:wrap;gap:6px}
 .actions button{font-size:11px;padding:9px}
 .empty{grid-column:1/-1;text-align:center;color:#aaa;padding:35px;border:1px dashed #555;border-radius:10px}
@@ -42,19 +63,13 @@ details p,footer{font-size:12px;line-height:1.5;color:#aaa}
 dialog{background:#181818;color:white;border:1px solid #555;border-radius:10px;max-width:400px;width:calc(100% - 30px)}
 dialog::backdrop{background:#000b}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
-@media(max-width:560px){
-header{align-items:flex-start;flex-direction:column}
-h1{font-size:32px}
-}
+@media(max-width:560px){header{min-height:125px;align-items:center;flex-direction:row}header .status{top:auto;bottom:7px;right:0}h1{font-size:38px;letter-spacing:4px}.sub{font-size:9px;letter-spacing:2px}}
 </style>
 </head>
 <body>
 <main class="wrap">
 <header>
-<div>
-<h1>МЕТЕОР<b>.</b></h1>
-<div class="sub">СИСТЕМА УПРАВЛЕНИЯ ТАЙМЕРАМИ</div>
-</div>
+<div><h1>МЕТЕОР<b>.</b></h1><div class="sub">СИСТЕМА УПРАВЛЕНИЯ ТАЙМЕРАМИ</div></div>
 <div class="status"><i class="dot" id="dot"></i><span id="status">Не подключено</span></div>
 </header>
 
@@ -67,20 +82,14 @@ h1{font-size:32px}
 <div class="empty">Подключите общее хранилище в настройках ниже.</div>
 </section>
 
-<footer>Позиции и таймеры общие для всех посетителей сайта. Изменения синхронизируются автоматически.</footer>
+<footer>Для каждой позиции можно вручную указать время запуска и продолжительность в минутах. После нажатия «Запустить» таймер рассчитывает окончание от указанного времени. Все изменения общие для посетителей сайта.</footer>
 
 <details id="setup">
 <summary>Настройки подключения Supabase</summary>
-<p>Введите Project URL и anon / publishable key вашего проекта Supabase.</p>
+<p>Введите Project URL и публичный Publishable key вашего проекта Supabase.</p>
 <div class="setup">
-<div>
-<label>PROJECT URL</label>
-<input id="url" placeholder="https://xxxxxxxx.supabase.co">
-</div>
-<div>
-<label>ANON / PUBLISHABLE KEY</label>
-<input id="key" placeholder="Публичный ключ Supabase">
-</div>
+<div><label>PROJECT URL</label><input id="url" placeholder="https://xxxxxxxx.supabase.co"></div>
+<div><label>PUBLISHABLE KEY</label><input id="key" placeholder="sb_publishable_..."></div>
 <button id="connect">СОХРАНИТЬ И ПОДКЛЮЧИТЬ</button>
 </div>
 </details>
@@ -103,198 +112,189 @@ h1{font-size:32px}
 <script>
 (()=>{
 let db=null,rows=[],channel=null;
-const $=x=>document.getElementById(x);
+const $=id=>document.getElementById(id);
 
 const status=(s,c='')=>{
-$('status').textContent=s;
-$('dot').className='dot '+c;
+  $('status').textContent=s;
+  $('dot').className='dot '+c;
 };
 
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
-'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-const fmt=ms=>{
-let n=Math.max(0,Math.ceil(ms/1000)),
-h=Math.floor(n/3600),
-m=Math.floor(n%3600/60),
-s=n%60;
-return h
-?`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
-:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-};
-
-function render(){
-let host=$('positions');
-if(!rows.length){
-host.innerHTML='<div class="empty">Позиций пока нет. Нажмите «Добавить позицию».</div>';
-return;
+function localTimeValue(dateValue){
+  if(!dateValue)return '';
+  const d=new Date(dateValue);
+  if(Number.isNaN(d.getTime()))return '';
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function currentTimeValue(){
+  const d=new Date();
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function timestampForToday(timeValue){
+  const [hours,minutes]=timeValue.split(':').map(Number);
+  const d=new Date();
+  d.setHours(hours,minutes,0,0);
+  return d.toISOString();
+}
+function fmt(ms){
+  let n=Math.max(0,Math.ceil(ms/1000));
+  let h=Math.floor(n/3600),m=Math.floor(n%3600/60),s=n%60;
+  return h
+    ?`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+    :`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-host.innerHTML=rows.map(r=>{
-let run=!!r.started_at,
-end=run?new Date(r.started_at).getTime()+r.duration_minutes*60000:0,
-left=run?end-Date.now():0,
-done=run&&left<=0;
-
-return `
-<article class="card" data-id="${r.id}">
-<div class="top">
-<div class="name">${esc(r.name)}</div>
-<button class="secondary" data-a="rename">✎</button>
-</div>
-<div class="time ${done?'finished':''}" data-t="${r.id}">${run?fmt(left):'--:--'}</div>
-<div class="meta">${done?'ВРЕМЯ ИСТЕКЛО':run?'Завершение: '+new Date(end).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'Таймер не запущен'} · ${r.duration_minutes} мин.</div>
-<div class="edit">
-<div>
-<label>ДЛИТЕЛЬНОСТЬ, МИНУТЫ</label>
-<input data-duration type="number" min="1" max="100000" step="1" value="${r.duration_minutes}">
-</div>
-<button class="secondary" data-a="save">СОХР.</button>
-</div>
-<div class="actions">
-<button data-a="start">${run?'ПЕРЕЗАПУСТИТЬ':'ЗАПУСТИТЬ'}</button>
-<button class="secondary" data-a="stop">СБРОСИТЬ</button>
-<button class="danger" data-a="delete">УДАЛИТЬ</button>
-</div>
-</article>`;
-}).join('');
+function render(){
+  const host=$('positions');
+  if(!rows.length){
+    host.innerHTML='<div class="empty">Позиций пока нет. Нажмите «Добавить позицию».</div>';
+    return;
+  }
+  host.innerHTML=rows.map(r=>{
+    const running=!!r.started_at;
+    const start=running?new Date(r.started_at).getTime():0;
+    const end=running?start+r.duration_minutes*60000:0;
+    const left=running?end-Date.now():0;
+    const done=running&&left<=0;
+    const clock=running?localTimeValue(r.started_at):currentTimeValue();
+    return `
+    <article class="card" data-id="${esc(r.id)}">
+      <div class="top">
+        <div class="name">${esc(r.name)}</div>
+        <button class="secondary" data-a="rename" title="Переименовать">✎</button>
+      </div>
+      <div class="time ${done?'finished':''}" data-t="${esc(r.id)}">${running?fmt(left):'--:--'}</div>
+      <div class="meta" data-meta="${esc(r.id)}">${done?'ВРЕМЯ ИСТЕКЛО':running?'Начало: '+new Date(start).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+' · Конец: '+new Date(end).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'Таймер не запущен'} · ${r.duration_minutes} мин.</div>
+      <div class="time-edit">
+        <label>ВРЕМЯ ЗАПУСКА</label>
+        <input type="time" step="60" data-start-time value="${clock}">
+      </div>
+      <div class="edit">
+        <div>
+          <label>ДЛИТЕЛЬНОСТЬ, МИНУТЫ</label>
+          <input data-duration type="number" min="1" max="100000" step="1" value="${r.duration_minutes}">
+        </div>
+        <button class="secondary" data-a="save">СОХР.</button>
+      </div>
+      <div class="actions">
+        <button data-a="start">${running?'ПЕРЕЗАПУСТИТЬ':'ЗАПУСТИТЬ'}</button>
+        <button class="secondary" data-a="stop">СБРОСИТЬ</button>
+        <button class="danger" data-a="delete">УДАЛИТЬ</button>
+      </div>
+    </article>`;
+  }).join('');
 }
 
 async function load(){
-if(!db)return;
-let {data,error}=await db.from('meteor_positions').select('*').order('created_at');
-if(error){
-status('Ошибка загрузки','bad');
-alert(error.message);
-return;
-}
-rows=data||[];
-render();
-status('Подключено','ok');
+  if(!db)return;
+  const {data,error}=await db.from('meteor_positions').select('*').order('created_at');
+  if(error){status('Ошибка загрузки','bad');alert(error.message);return;}
+  rows=data||[];
+  render();
+  status('Подключено','ok');
 }
 
 async function update(id,patch){
-let {error}=await db.from('meteor_positions').update(patch).eq('id',id);
-if(error)alert('Ошибка сохранения: '+error.message);
+  const {error}=await db.from('meteor_positions').update(patch).eq('id',id);
+  if(error)alert('Ошибка сохранения: '+error.message);
 }
 
 $('connect').onclick=async()=>{
-let url=$('url').value.trim(),
-key=$('key').value.trim();
-
-if(!/^https:\/\/[a-z0-9.-]+$/i.test(url)||!key){
-alert('Проверьте Project URL и публичный ключ.');
-return;
-}
-
-try{
-db=window.supabase.createClient(url,key);
-let {error}=await db.from('meteor_positions').select('id').limit(1);
-if(error)throw error;
-
-if(channel)await db.removeChannel(channel);
-
-channel=db.channel('meteor-live')
-.on('postgres_changes',{
-event:'*',
-schema:'public',
-table:'meteor_positions'
-},load)
-.subscribe();
-
-await load();
-$('setup').open=false;
-}catch(e){
-db=null;
-status('Ошибка подключения','bad');
-alert('Не удалось подключиться: '+e.message);
-}
+  const url=$('url').value.trim(),key=$('key').value.trim();
+  if(!/^https:\/\/[a-z0-9.-]+$/i.test(url)||!key){
+    alert('Проверьте Project URL и публичный ключ.');
+    return;
+  }
+  try{
+    db=window.supabase.createClient(url,key);
+    const {error}=await db.from('meteor_positions').select('id').limit(1);
+    if(error)throw error;
+    if(channel)await db.removeChannel(channel);
+    channel=db.channel('meteor-live')
+      .on('postgres_changes',{event:'*',schema:'public',table:'meteor_positions'},load)
+      .subscribe();
+    await load();
+    $('setup').open=false;
+  }catch(e){
+    db=null;
+    status('Ошибка подключения','bad');
+    alert('Не удалось подключиться: '+e.message);
+  }
 };
 
 $('add').onclick=()=>{
-if(!db)return alert('Сначала подключите Supabase в настройках внизу.');
-$('newName').value='';
-$('newDuration').value='40';
-$('dlg').showModal();
+  if(!db)return alert('Сначала подключите Supabase в настройках внизу.');
+  $('newName').value='';
+  $('newDuration').value='40';
+  $('dlg').showModal();
 };
-
 $('cancel').onclick=()=>$('dlg').close();
 
 $('form').onsubmit=async e=>{
-e.preventDefault();
-let name=$('newName').value.trim(),
-duration=Number($('newDuration').value);
-
-if(!name||!Number.isInteger(duration)||duration<1)return;
-
-let {error}=await db.from('meteor_positions').insert({
-name,
-duration_minutes:duration
-});
-
-if(error)alert(error.message);
-else{
-$('dlg').close();
-load();
-}
+  e.preventDefault();
+  const name=$('newName').value.trim(),duration=Number($('newDuration').value);
+  if(!name||!Number.isInteger(duration)||duration<1||duration>100000)return;
+  const {error}=await db.from('meteor_positions').insert({name,duration_minutes:duration});
+  if(error)alert(error.message);
+  else{$('dlg').close();await load();}
 };
 
 $('refresh').onclick=load;
 
 $('positions').onclick=async e=>{
-let b=e.target.closest('button[data-a]');
-if(!b)return;
+  const b=e.target.closest('button[data-a]');
+  if(!b)return;
+  const card=b.closest('.card'),id=card.dataset.id;
+  const r=rows.find(x=>String(x.id)===id),action=b.dataset.a;
+  if(!r)return;
 
-let card=b.closest('.card'),
-id=card.dataset.id,
-r=rows.find(x=>String(x.id)===id),
-a=b.dataset.a;
-
-if(!r)return;
-
-if(a==='start')await update(id,{started_at:new Date().toISOString()});
-if(a==='stop')await update(id,{started_at:null});
-
-if(a==='rename'){
-let n=prompt('Новое название:',r.name);
-if(n&&n.trim())await update(id,{name:n.trim()});
-}
-
-if(a==='save'){
-let n=Number(card.querySelector('[data-duration]').value);
-if(!Number.isInteger(n)||n<1||n>100000){
-alert('Введите целое число минут от 1 до 100000.');
-return;
-}
-await update(id,{duration_minutes:n});
-}
-
-if(a==='delete'&&confirm('Удалить позицию «'+r.name+'»?')){
-let {error}=await db.from('meteor_positions').delete().eq('id',id);
-if(error)alert(error.message);
-else load();
-}
+  if(action==='start'){
+    const clock=card.querySelector('[data-start-time]').value;
+    if(!clock){alert('Укажите время запуска.');return;}
+    await update(id,{started_at:timestampForToday(clock)});
+    await load();
+  }
+  if(action==='stop'){
+    await update(id,{started_at:null});
+    await load();
+  }
+  if(action==='rename'){
+    const name=prompt('Новое название:',r.name);
+    if(name&&name.trim()){await update(id,{name:name.trim()});await load();}
+  }
+  if(action==='save'){
+    const duration=Number(card.querySelector('[data-duration]').value);
+    if(!Number.isInteger(duration)||duration<1||duration>100000){
+      alert('Введите целое число минут от 1 до 100000.');
+      return;
+    }
+    await update(id,{duration_minutes:duration});
+    await load();
+  }
+  if(action==='delete'&&confirm('Удалить позицию «'+r.name+'»?')){
+    const {error}=await db.from('meteor_positions').delete().eq('id',id);
+    if(error)alert(error.message);else await load();
+  }
 };
 
 setInterval(()=>{
-document.querySelectorAll('[data-t]').forEach(el=>{
-let r=rows.find(x=>String(x.id)===el.dataset.t);
-if(!r||!r.started_at)return;
-
-let end=new Date(r.started_at).getTime()+r.duration_minutes*60000;
-el.textContent=fmt(end-Date.now());
-el.classList.toggle('finished',end<=Date.now());
-
-let meta=el.nextElementSibling;
-if(meta)meta.textContent=
-(end<=Date.now()
-?'ВРЕМЯ ИСТЕКЛО'
-:'Завершение: '+new Date(end).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}))
-+' · '+r.duration_minutes+' мин.';
-});
+  document.querySelectorAll('[data-t]').forEach(el=>{
+    const r=rows.find(x=>String(x.id)===el.dataset.t);
+    if(!r||!r.started_at)return;
+    const start=new Date(r.started_at).getTime();
+    const end=start+r.duration_minutes*60000;
+    el.textContent=fmt(end-Date.now());
+    el.classList.toggle('finished',end<=Date.now());
+    const meta=document.querySelector(`[data-meta="${CSS.escape(String(r.id))}"]`);
+    if(meta){
+      meta.textContent=(end<=Date.now()?'ВРЕМЯ ИСТЕКЛО':
+        'Начало: '+new Date(start).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+
+        ' · Конец: '+new Date(end).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}))
+        +' · '+r.duration_minutes+' мин.';
+    }
+  });
 },250);
-
 })();
 </script>
 </body>
