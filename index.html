@@ -1,300 +1,247 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>МЕТЕОР — Таймеры</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--r:#e32636;--bg:#090909;--p:#171717;--line:#383838}
 *{box-sizing:border-box}
-body{
-  margin:0;
-  background:
-    radial-gradient(ellipse at 14% 10%,rgba(227,38,54,.12),transparent 30%),
-    radial-gradient(ellipse at 88% 20%,rgba(255,255,255,.10),transparent 27%),
-    radial-gradient(ellipse at 72% 92%,rgba(170,20,35,.08),transparent 32%),
-    linear-gradient(135deg,#030303 0%,#101012 38%,#191316 62%,#050505 100%);
-  background-attachment:fixed;
-  color:#f5f5f5;font:16px Arial,sans-serif;min-height:100vh
-}
-body::before{
-  content:"";
-  position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:
-    linear-gradient(115deg,transparent 0 38%,rgba(255,255,255,.045) 48%,transparent 58%),
-    repeating-linear-gradient(135deg,rgba(255,255,255,.014) 0 1px,transparent 1px 8px);
-  opacity:.55;
-}
-.wrap{position:relative;z-index:1}
-.wrap{max-width:1100px;margin:auto;padding:28px 18px}
-header{position:relative;display:flex;justify-content:center;align-items:center;gap:15px;border-bottom:1px solid var(--line);padding:12px 0 22px;margin-bottom:22px;min-height:112px}
-header>div:first-child{text-align:center}
-h1{font-size:48px;letter-spacing:6px;margin:0;color:#fff;font-weight:900;text-shadow:0 0 2px #fff,0 0 14px rgba(255,255,255,.28),0 3px 0 #555}
-h1 b{color:#ed2638;text-shadow:0 0 14px rgba(237,38,56,.45)}
-.sub{font-size:11px;color:#c9c9c9;letter-spacing:3px;margin-top:8px}
-header .status{position:absolute;right:0;top:12px}
-.status{font-size:12px;color:#aaa}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#888;margin-right:7px}
-.ok{background:#39c46a}.bad{background:var(--r)}
-button{background:var(--r);color:white;border:0;border-radius:7px;padding:11px 14px;font-weight:bold;cursor:pointer}
+body{margin:0;background:radial-gradient(ellipse at 15% 10%,#351017,transparent 35%),linear-gradient(135deg,#050505,#202023 50%,#16080b);color:#fff;font:16px Arial;min-height:100vh}
+.wrap{max-width:1100px;margin:auto;padding:25px 16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:15px;border-bottom:1px solid #444;padding-bottom:18px;margin-bottom:22px;flex-wrap:wrap}
+h1{font-size:38px;letter-spacing:4px;margin:0}h1 b{color:#e32636}
+.sub{font-size:11px;color:#aaa;letter-spacing:2px;margin-top:6px}
+button{background:#d92335;color:white;border:0;border-radius:7px;padding:11px 14px;font-weight:bold;cursor:pointer}
 button.secondary{background:#303030;border:1px solid #555}
-button.danger{background:#42191e;border:1px solid #742832}
-.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px}
+button.danger{background:#49151d;border:1px solid #842a36}
+input{width:100%;background:#080808;border:1px solid #555;color:white;padding:11px;border-radius:6px;margin:5px 0 13px}
+label{display:block;color:#bbb;font-size:12px}
+.panel,.card{background:linear-gradient(145deg,#303034,#111 70%,#260d12);border:1px solid #494044;border-top:3px solid #d92335;border-radius:10px;padding:17px;margin-bottom:16px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px}
-.card{background:linear-gradient(145deg,rgba(48,48,51,.96),rgba(13,13,14,.98) 58%,rgba(48,10,16,.94));border:1px solid #484044;border-top:3px solid var(--r);border-radius:11px;padding:16px;min-width:0}
 .top{display:flex;align-items:center;gap:8px}
-.name{font-weight:bold;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.time{font-size:43px;font-weight:bold;font-variant-numeric:tabular-nums;margin:15px 0 7px}
-.finished{color:var(--r)}
+.name{font-weight:bold;flex:1;overflow:hidden;text-overflow:ellipsis}
+.time{font-size:42px;font-weight:bold;margin:15px 0 7px;font-variant-numeric:tabular-nums}
+.finished{color:#f04455}
 .meta{font-size:12px;color:#aaa;min-height:18px;margin-bottom:13px}
-.edit{display:grid;grid-template-columns:1fr 85px;gap:8px;margin:10px 0 14px}
-.time-edit{margin:10px 0}
-label{display:block;color:#aaa;font-size:11px;margin-bottom:5px}
-input{width:100%;background:#080808;border:1px solid #484848;color:white;padding:10px;border-radius:6px;min-width:0}
-input[type=time]{color-scheme:dark}
-.actions{display:flex;flex-wrap:wrap;gap:6px}
+.actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .actions button{font-size:11px;padding:9px}
-.empty{grid-column:1/-1;text-align:center;color:#aaa;padding:35px;border:1px dashed #555;border-radius:10px}
-details{margin-top:24px;background:var(--p);border:1px solid #444;border-radius:9px;padding:15px}
-summary{cursor:pointer;font-weight:bold}
-details p,footer{font-size:12px;line-height:1.5;color:#aaa}
-.setup{display:grid;gap:10px}
-dialog{background:#181818;color:white;border:1px solid #555;border-radius:10px;max-width:400px;width:calc(100% - 30px)}
-dialog::backdrop{background:#000b}
-.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
-@media(max-width:560px){header{min-height:125px;align-items:center;flex-direction:row}header .status{top:auto;bottom:7px;right:0}h1{font-size:38px;letter-spacing:4px}.sub{font-size:9px;letter-spacing:2px}}
+.status{font-size:12px;color:#aaa}
+.hidden{display:none!important}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px}
+.auth{max-width:420px;margin:55px auto}
+h2{margin-top:0}
+.userrow{border-bottom:1px solid #444;padding:12px 0;display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;font-size:13px}
+.small{font-size:11px;color:#aaa}
+.empty{padding:30px;text-align:center;color:#aaa;border:1px dashed #555;border-radius:8px}
+@media(max-width:550px){h1{font-size:30px}.time{font-size:36px}}
 </style>
 </head>
 <body>
 <main class="wrap">
 <header>
-<div><h1>МЕТЕОР<b>.</b></h1><div class="sub">СИСТЕМА УПРАВЛЕНИЯ ТАЙМЕРАМИ</div></div>
-<div class="status"><i class="dot" id="dot"></i><span id="status">Не подключено</span></div>
+ <div><h1>МЕТЕОР<b>.</b></h1><div class="sub">СИСТЕМА УПРАВЛЕНИЯ ТАЙМЕРАМИ</div></div>
+ <div><div class="status" id="status">Не авторизован</div><button class="secondary hidden" id="logout">ВЫЙТИ</button></div>
 </header>
 
-<div class="toolbar">
-<button id="add">＋ ДОБАВИТЬ ПОЗИЦИЮ</button>
-<button class="secondary" id="refresh">↻ ОБНОВИТЬ</button>
-</div>
-
-<section class="grid" id="positions">
-<div class="empty">Подключите общее хранилище в настройках ниже.</div>
+<section id="login" class="panel auth">
+ <h2>ВХОД В СИСТЕМУ</h2>
+ <label>Электронная почта</label>
+ <input id="email" type="email" autocomplete="username" placeholder="Ваш email">
+ <label>Пароль</label>
+ <input id="password" type="password" autocomplete="current-password" placeholder="Ваш пароль">
+ <button id="loginBtn">ВОЙТИ</button>
+ <p class="small">Учётные записи создаёт администратор.</p>
 </section>
 
-<footer>Для каждой позиции можно вручную указать время запуска и продолжительность в минутах. После нажатия «Запустить» таймер рассчитывает окончание от указанного времени. Все изменения общие для посетителей сайта.</footer>
+<section id="app" class="hidden">
+ <div class="toolbar">
+  <button id="add">＋ ДОБАВИТЬ ПОЗИЦИЮ</button>
+  <button class="secondary" id="refresh">↻ ОБНОВИТЬ</button>
+ </div>
+ <div class="grid" id="positions"><div class="empty">Загрузка...</div></div>
 
-<details id="setup">
-<summary>Настройки подключения Supabase</summary>
-<p>Введите Project URL и публичный Publishable key вашего проекта Supabase.</p>
-<div class="setup">
-<div><label>PROJECT URL</label><input id="url" placeholder="https://xxxxxxxx.supabase.co"></div>
-<div><label>PUBLISHABLE KEY</label><input id="key" placeholder="sb_publishable_..."></div>
-<button id="connect">СОХРАНИТЬ И ПОДКЛЮЧИТЬ</button>
-</div>
-</details>
+ <section id="admin" class="panel hidden">
+  <h2>ПАНЕЛЬ АДМИНИСТРАТОРА</h2>
+  <h3>Создать пользователя</h3>
+  <label>Email нового пользователя</label>
+  <input id="newEmail" type="email" placeholder="user@example.com">
+  <label>Пароль для нового пользователя</label>
+  <input id="newPassword" type="password" placeholder="Не менее 8 символов">
+  <button id="createUser">СОЗДАТЬ АККАУНТ</button>
+  <h3 style="margin-top:25px">Пользователи</h3>
+  <div id="users">Загрузка списка...</div>
+ </section>
+</section>
 </main>
-
-<dialog id="dlg">
-<form id="form">
-<h3>Новая позиция</h3>
-<label>Название</label>
-<input id="newName" maxlength="60" required placeholder="Например, Северный склад">
-<label style="margin-top:12px">Продолжительность (минуты)</label>
-<input id="newDuration" type="number" min="1" max="100000" step="1" value="40" required>
-<div class="modal-actions">
-<button type="button" class="secondary" id="cancel">ОТМЕНА</button>
-<button>СОЗДАТЬ</button>
-</div>
-</form>
-</dialog>
 
 <script>
 (()=>{
-let db=null,rows=[],channel=null;
+const PROJECT_URL="https://cplwqqzenjlutenwvewl.supabase.co";
+const PUBLISHABLE_KEY="sb_publishable_yQ72ypGhB0MgD5X8xZphRw_WlbHapc6";
+const ADMIN_FUNCTION=PROJECT_URL+"/functions/v1/dynamic-task";
+
+const db=window.supabase.createClient(PROJECT_URL,PUBLISHABLE_KEY);
 const $=id=>document.getElementById(id);
+let rows=[],channel=null,profile=null,session=null;
 
-const status=(s,c='')=>{
-  $('status').textContent=s;
-  $('dot').className='dot '+c;
-};
-
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-function localTimeValue(dateValue){
-  if(!dateValue)return '';
-  const d=new Date(dateValue);
-  if(Number.isNaN(d.getTime()))return '';
-  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-}
-function currentTimeValue(){
-  const d=new Date();
-  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-}
-function timestampForToday(timeValue){
-  const [hours,minutes]=timeValue.split(':').map(Number);
-  const d=new Date();
-  d.setHours(hours,minutes,0,0);
-  return d.toISOString();
-}
+function status(s){$("status").textContent=s}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function fmt(ms){
-  let n=Math.max(0,Math.ceil(ms/1000));
-  let h=Math.floor(n/3600),m=Math.floor(n%3600/60),s=n%60;
-  return h
-    ?`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
-    :`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+ let n=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(n/3600),m=Math.floor(n%3600/60),s=n%60;
+ return h?`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`:`${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
 }
-
-function render(){
-  const host=$('positions');
-  if(!rows.length){
-    host.innerHTML='<div class="empty">Позиций пока нет. Нажмите «Добавить позицию».</div>';
-    return;
-  }
-  host.innerHTML=rows.map(r=>{
-    const running=!!r.started_at;
-    const start=running?new Date(r.started_at).getTime():0;
-    const end=running?start+r.duration_minutes*60000:0;
-    const left=running?end-Date.now():0;
-    const done=running&&left<=0;
-    const clock=running?localTimeValue(r.started_at):currentTimeValue();
-    return `
-    <article class="card" data-id="${esc(r.id)}">
-      <div class="top">
-        <div class="name">${esc(r.name)}</div>
-        <button class="secondary" data-a="rename" title="Переименовать">✎</button>
-      </div>
-      <div class="time ${done?'finished':''}" data-t="${esc(r.id)}">${running?fmt(left):'--:--'}</div>
-      <div class="meta" data-meta="${esc(r.id)}">${done?'ВРЕМЯ ИСТЕКЛО':running?'Начало: '+new Date(start).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+' · Конец: '+new Date(end).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'Таймер не запущен'} · ${r.duration_minutes} мин.</div>
-      <div class="time-edit">
-        <label>ВРЕМЯ ЗАПУСКА</label>
-        <input type="time" step="60" data-start-time value="${clock}">
-      </div>
-      <div class="edit">
-        <div>
-          <label>ДЛИТЕЛЬНОСТЬ, МИНУТЫ</label>
-          <input data-duration type="number" min="1" max="100000" step="1" value="${r.duration_minutes}">
-        </div>
-        <button class="secondary" data-a="save">СОХР.</button>
-      </div>
-      <div class="actions">
-        <button data-a="start">${running?'ПЕРЕЗАПУСТИТЬ':'ЗАПУСТИТЬ'}</button>
-        <button class="secondary" data-a="stop">СБРОСИТЬ</button>
-        <button class="danger" data-a="delete">УДАЛИТЬ</button>
-      </div>
-    </article>`;
-  }).join('');
+function timeToday(v){
+ const [h,m]=v.split(":").map(Number),d=new Date();
+ d.setHours(h,m,0,0);return d.toISOString();
 }
-
+function currentTime(){
+ const d=new Date();return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+function localTime(v){
+ const d=new Date(v);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+async function adminCall(action,extra={}){
+ const {data:{session:s}}=await db.auth.getSession();
+ const response=await fetch(ADMIN_FUNCTION,{
+  method:"POST",
+  headers:{
+   "Content-Type":"application/json",
+   "Authorization":"Bearer "+s.access_token,
+   "apikey":PUBLISHABLE_KEY
+  },
+  body:JSON.stringify({action,...extra})
+ });
+ const result=await response.json();
+ if(!response.ok)throw new Error(result.error||"Ошибка функции");
+ return result;
+}
 async function load(){
-  if(!db)return;
-  const {data,error}=await db.from('meteor_positions').select('*').order('created_at');
-  if(error){status('Ошибка загрузки','bad');alert(error.message);return;}
-  rows=data||[];
-  render();
-  status('Подключено','ok');
+ const {data,error}=await db.from("meteor_positions").select("*").order("created_at");
+ if(error){alert("Ошибка загрузки: "+error.message);return}
+ rows=data||[];render();
 }
-
-async function update(id,patch){
-  const {error}=await db.from('meteor_positions').update(patch).eq('id',id);
-  if(error)alert('Ошибка сохранения: '+error.message);
+function render(){
+ if(!rows.length){$("positions").innerHTML='<div class="empty">Позиций пока нет.</div>';return}
+ $("positions").innerHTML=rows.map(r=>{
+  const running=!!r.started_at,start=running?new Date(r.started_at).getTime():0;
+  const end=start+Number(r.duration_minutes)*60000,left=end-Date.now(),done=running&&left<=0;
+  return `<article class="card" data-id="${esc(r.id)}">
+   <div class="top"><div class="name">${esc(r.name)}</div><button class="secondary" data-a="rename">✎</button></div>
+   <div class="time ${done?"finished":""}" data-t="${esc(r.id)}">${running?fmt(left):"--:--"}</div>
+   <div class="meta" data-meta="${esc(r.id)}">${running?(done?"ВРЕМЯ ИСТЕКЛО":"Начало: "+localTime(r.started_at)+" · Конец: "+localTime(new Date(end).toISOString())):"Таймер не запущен"} · ${r.duration_minutes} мин.</div>
+   <label>ВРЕМЯ ЗАПУСКА</label>
+   <input type="time" step="60" data-clock value="${running?localTime(r.started_at):currentTime()}">
+   <label>ДЛИТЕЛЬНОСТЬ, МИНУТЫ</label>
+   <input type="number" min="1" max="100000" step="1" data-duration value="${r.duration_minutes}">
+   <div class="actions">
+    <button data-a="start">${running?"ПЕРЕЗАПУСТИТЬ":"ЗАПУСТИТЬ"}</button>
+    <button class="secondary" data-a="stop">СБРОСИТЬ</button>
+    <button class="secondary" data-a="save">СОХРАНИТЬ</button>
+    <button class="danger" data-a="delete">УДАЛИТЬ</button>
+   </div>
+  </article>`;
+ }).join("");
 }
-
-$('connect').onclick=async()=>{
-  const url=$('url').value.trim(),key=$('key').value.trim();
-  if(!/^https:\/\/[a-z0-9.-]+$/i.test(url)||!key){
-    alert('Проверьте Project URL и публичный ключ.');
-    return;
-  }
-  try{
-    db=window.supabase.createClient(url,key);
-    const {error}=await db.from('meteor_positions').select('id').limit(1);
-    if(error)throw error;
-    if(channel)await db.removeChannel(channel);
-    channel=db.channel('meteor-live')
-      .on('postgres_changes',{event:'*',schema:'public',table:'meteor_positions'},load)
-      .subscribe();
-    await load();
-    $('setup').open=false;
-  }catch(e){
-    db=null;
-    status('Ошибка подключения','bad');
-    alert('Не удалось подключиться: '+e.message);
-  }
+async function refreshUsers(){
+ const result=await adminCall("list_users");
+ $("users").innerHTML=(result.users||[]).map(u=>`
+  <div class="userrow">
+   <div><b>${esc(u.user_id)}</b><br><span class="small">${u.active?"Активен":"Отключён"}</span></div>
+   <button class="${u.active?"danger":"secondary"}" data-user="${esc(u.user_id)}" data-active="${u.active}">
+    ${u.active?"ОТКЛЮЧИТЬ":"ВКЛЮЧИТЬ"}
+   </button>
+  </div>`).join("")||"Пользователей пока нет.";
+}
+async function enter(s){
+ session=s;
+ const {data,error}=await db.from("meteor_user_profiles").select("role,active").eq("user_id",s.user.id).maybeSingle();
+ if(error||!data||!data.active){
+  await db.auth.signOut();throw new Error("Нет доступа. Обратитесь к администратору.");
+ }
+ profile=data;
+ $("login").classList.add("hidden");$("app").classList.remove("hidden");$("logout").classList.remove("hidden");
+ $("admin").classList.toggle("hidden",profile.role!=="admin");
+ status("Вы вошли: "+s.user.email);
+ await load();
+ if(channel)await db.removeChannel(channel);
+ channel=db.channel("meteor-live").on("postgres_changes",{event:"*",schema:"public",table:"meteor_positions"},load).subscribe();
+ if(profile.role==="admin")await refreshUsers();
+}
+$("loginBtn").onclick=async()=>{
+ try{
+  const {data,error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+  if(error)throw error;await enter(data.session);
+ }catch(e){alert(e.message)}
 };
-
-$('add').onclick=()=>{
-  if(!db)return alert('Сначала подключите Supabase в настройках внизу.');
-  $('newName').value='';
-  $('newDuration').value='40';
-  $('dlg').showModal();
+$("logout").onclick=async()=>{if(channel)await db.removeChannel(channel);await db.auth.signOut();location.reload()};
+$("refresh").onclick=load;
+$("add").onclick=async()=>{
+ const name=prompt("Название новой позиции:");
+ if(!name||!name.trim())return;
+ const duration=Number(prompt("Продолжительность в минутах:","40"));
+ if(!Number.isInteger(duration)||duration<1||duration>100000)return alert("Введите целое число минут.");
+ const {error}=await db.from("meteor_positions").insert({name:name.trim(),duration_minutes:duration});
+ if(error)alert(error.message);else await load();
 };
-$('cancel').onclick=()=>$('dlg').close();
-
-$('form').onsubmit=async e=>{
-  e.preventDefault();
-  const name=$('newName').value.trim(),duration=Number($('newDuration').value);
-  if(!name||!Number.isInteger(duration)||duration<1||duration>100000)return;
-  const {error}=await db.from('meteor_positions').insert({name,duration_minutes:duration});
-  if(error)alert(error.message);
-  else{$('dlg').close();await load();}
+$("positions").onclick=async e=>{
+ const b=e.target.closest("button[data-a]");if(!b)return;
+ const card=b.closest(".card"),id=card.dataset.id,r=rows.find(x=>String(x.id)===id);
+ if(!r)return;
+ const action=b.dataset.a;
+ let patch={};
+ if(action==="rename"){
+  const name=prompt("Новое название:",r.name);if(!name||!name.trim())return;patch.name=name.trim();
+ }
+ if(action==="start"){
+  const v=card.querySelector("[data-clock]").value;if(!v)return alert("Укажите время.");
+  patch.started_at=timeToday(v);
+ }
+ if(action==="stop")patch.started_at=null;
+ if(action==="save"){
+  const n=Number(card.querySelector("[data-duration]").value);
+  if(!Number.isInteger(n)||n<1||n>100000)return alert("Неверная продолжительность.");
+  patch.duration_minutes=n;
+ }
+ if(action==="delete"){
+  if(!confirm("Удалить позицию «"+r.name+"»?"))return;
+  const {error}=await db.from("meteor_positions").delete().eq("id",id);
+  if(error)alert(error.message);else await load();return;
+ }
+ if(Object.keys(patch).length){
+  const {error}=await db.from("meteor_positions").update(patch).eq("id",id);
+  if(error)alert(error.message);else await load();
+ }
 };
-
-$('refresh').onclick=load;
-
-$('positions').onclick=async e=>{
-  const b=e.target.closest('button[data-a]');
-  if(!b)return;
-  const card=b.closest('.card'),id=card.dataset.id;
-  const r=rows.find(x=>String(x.id)===id),action=b.dataset.a;
-  if(!r)return;
-
-  if(action==='start'){
-    const clock=card.querySelector('[data-start-time]').value;
-    if(!clock){alert('Укажите время запуска.');return;}
-    await update(id,{started_at:timestampForToday(clock)});
-    await load();
-  }
-  if(action==='stop'){
-    await update(id,{started_at:null});
-    await load();
-  }
-  if(action==='rename'){
-    const name=prompt('Новое название:',r.name);
-    if(name&&name.trim()){await update(id,{name:name.trim()});await load();}
-  }
-  if(action==='save'){
-    const duration=Number(card.querySelector('[data-duration]').value);
-    if(!Number.isInteger(duration)||duration<1||duration>100000){
-      alert('Введите целое число минут от 1 до 100000.');
-      return;
-    }
-    await update(id,{duration_minutes:duration});
-    await load();
-  }
-  if(action==='delete'&&confirm('Удалить позицию «'+r.name+'»?')){
-    const {error}=await db.from('meteor_positions').delete().eq('id',id);
-    if(error)alert(error.message);else await load();
-  }
+$("createUser").onclick=async()=>{
+ try{
+  const email=$("newEmail").value.trim(),password=$("newPassword").value;
+  if(!email||password.length<8)throw new Error("Укажите email и пароль не короче 8 символов.");
+  await adminCall("create_user",{email,password});
+  alert("Пользователь создан.");$("newEmail").value="";$("newPassword").value="";
+  await refreshUsers();
+ }catch(e){alert(e.message)}
 };
-
+$("users").onclick=async e=>{
+ const b=e.target.closest("button[data-user]");if(!b)return;
+ try{
+  await adminCall("set_active",{user_id:b.dataset.user,active:b.dataset.active!=="true"});
+  await refreshUsers();
+ }catch(err){alert(err.message)}
+};
 setInterval(()=>{
-  document.querySelectorAll('[data-t]').forEach(el=>{
-    const r=rows.find(x=>String(x.id)===el.dataset.t);
-    if(!r||!r.started_at)return;
-    const start=new Date(r.started_at).getTime();
-    const end=start+r.duration_minutes*60000;
-    el.textContent=fmt(end-Date.now());
-    el.classList.toggle('finished',end<=Date.now());
-    const meta=document.querySelector(`[data-meta="${CSS.escape(String(r.id))}"]`);
-    if(meta){
-      meta.textContent=(end<=Date.now()?'ВРЕМЯ ИСТЕКЛО':
-        'Начало: '+new Date(start).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+
-        ' · Конец: '+new Date(end).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}))
-        +' · '+r.duration_minutes+' мин.';
-    }
-  });
-},250);
+ document.querySelectorAll("[data-t]").forEach(el=>{
+  const r=rows.find(x=>String(x.id)===el.dataset.t);if(!r||!r.started_at)return;
+  const start=new Date(r.started_at).getTime(),end=start+r.duration_minutes*60000;
+  el.textContent=fmt(end-Date.now());el.classList.toggle("finished",end<=Date.now());
+  const meta=document.querySelector(`[data-meta="${CSS.escape(String(r.id))}"]`);
+  if(meta)meta.textContent=(end<=Date.now()?"ВРЕМЯ ИСТЕКЛО":"Начало: "+localTime(r.started_at)+" · Конец: "+localTime(new Date(end).toISOString()))+" · "+r.duration_minutes+" мин.";
+ });
+},500);
+db.auth.getSession().then(async({data})=>{
+ if(data.session){try{await enter(data.session)}catch(e){alert(e.message)}}
+});
 })();
 </script>
 </body>
